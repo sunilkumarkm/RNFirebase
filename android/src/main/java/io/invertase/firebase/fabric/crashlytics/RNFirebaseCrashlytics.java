@@ -1,7 +1,6 @@
 package io.invertase.firebase.fabric.crashlytics;
 
 import android.os.Handler;
-import android.util.Log;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -10,7 +9,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 
-import java.util.ArrayList;
+import android.util.Log;
+import java.util.Objects;
 
 public class RNFirebaseCrashlytics extends ReactContextBaseJavaModule {
 
@@ -44,41 +44,17 @@ public class RNFirebaseCrashlytics extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void recordError(final int code, final String domain) {
-    crashlytics.recordException(new Exception(code + ": " + domain));
+  public void recordError(ReadableMap jsErrorMap) {
+    if (ReactNativeFirebaseCrashlyticsInitProvider.isCrashlyticsCollectionEnabled()) {
+      recordJavaScriptError(jsErrorMap);
+    }
   }
 
   @ReactMethod
-  public void recordCustomError(String name, String reason, ReadableArray frameArray) {
-      ArrayList<StackTraceElement> stackList = new ArrayList<>(0);
-      for (int i = 0; i < frameArray.size(); i++) {
-        ReadableMap map = frameArray.getMap(i);
-        ReadableMap additional = map.hasKey("additional") ? map.getMap("additional") : null;
-        String functionName = map.hasKey("functionName") ? map.getString("functionName") : "Unknown Function";
-        String className = map.hasKey("className") ? map.getString("className") : "Unknown Class";
-        StackTraceElement stack = new StackTraceElement(
-          className,
-          functionName,
-          map.getString("fileName"),
-          map.hasKey("lineNumber") ? map.getInt("lineNumber") : -1
-        );
-        stackList.add(stack);
-
-        if(additional != null){
-          StackTraceElement s = new StackTraceElement(
-            "Additional Parameters",
-            additional.toString(),
-            map.getString("fileName"),
-            map.hasKey("lineNumber") ? map.getInt("lineNumber") : -1
-          );
-          stackList.add(s);
-        }
-      }
-      StackTraceElement[] stackTrace =  new StackTraceElement[stackList.size()];
-      Exception e = new Exception(name + "\n" + reason);
-      stackTrace = stackList.toArray(stackTrace);
-      e.setStackTrace(stackTrace);
-      crashlytics.recordException(e);
+  public void recordCustomError(ReadableMap jsErrorMap) {
+    if (ReactNativeFirebaseCrashlyticsInitProvider.isCrashlyticsCollectionEnabled()) {
+      recordJavaScriptError(jsErrorMap);
+    }
   }
 
   @ReactMethod
@@ -119,6 +95,32 @@ public class RNFirebaseCrashlytics extends ReactContextBaseJavaModule {
   @ReactMethod
   public void enableCrashlyticsCollection() {
     crashlytics.setCrashlyticsCollectionEnabled(true);
+  }
+
+   private void recordJavaScriptError(ReadableMap jsErrorMap) {
+    String message = jsErrorMap.getString("message");
+    ReadableArray stackFrames = Objects.requireNonNull(jsErrorMap.getArray("frames"));
+    boolean isUnhandledPromiseRejection = jsErrorMap.getBoolean("isUnhandledRejection");
+
+    Exception customException;
+    if (isUnhandledPromiseRejection) {
+      customException = new UnhandledPromiseRejection(message);
+    } else {
+      customException = new JavaScriptError(message);
+    }
+
+    StackTraceElement[] stackTraceElements = new StackTraceElement[stackFrames.size()];
+
+    for (int i = 0; i < stackFrames.size(); i++) {
+      ReadableMap stackFrame = Objects.requireNonNull(stackFrames.getMap(i));
+      String fn = stackFrame.getString("fn");
+      String file = stackFrame.getString("file");
+      stackTraceElements[i] = new StackTraceElement("", fn, file, -1);
+    }
+
+    customException.setStackTrace(stackTraceElements);
+
+    FirebaseCrashlytics.getInstance().recordException(customException);
   }
 
 }

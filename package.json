@@ -127,5 +127,10 @@
       "prettier --write",
       "git add"
     ]
+  },
+  "sdkVersions": {
+    "ios": {
+      "firebase": "~> 6.30.0"
+    }
   }
 }
