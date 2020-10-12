@@ -45,16 +45,12 @@ public class RNFirebaseCrashlytics extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void recordError(ReadableMap jsErrorMap) {
-    if (ReactNativeFirebaseCrashlyticsInitProvider.isCrashlyticsCollectionEnabled()) {
       recordJavaScriptError(jsErrorMap);
-    }
   }
 
   @ReactMethod
   public void recordCustomError(ReadableMap jsErrorMap) {
-    if (ReactNativeFirebaseCrashlyticsInitProvider.isCrashlyticsCollectionEnabled()) {
       recordJavaScriptError(jsErrorMap);
-    }
   }
 
   @ReactMethod
