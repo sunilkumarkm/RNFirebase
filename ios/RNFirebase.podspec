@@ -1,6 +1,5 @@
 require 'json'
 package = JSON.parse(File.read('../package.json'))
-firebase_sdk_version = appPackage['sdkVersions']['ios']['firebase']
 
 Pod::Spec.new do |s|
   s.name                = "RNFirebase"
@@ -19,11 +18,8 @@ Pod::Spec.new do |s|
   s.dependency          'React'
   # Firebase dependencies
   s.dependency          'Firebase/Core'
-  s.dependency          'Firebase/Crashlytics', firebase_sdk_version
-  # s.subspec 'Crashlytics' do |cs|
-  #   cs.dependency 'Fabric'
-  #   cs.dependency 'Crashlytics'
-  end
+  s.dependency          'Firebase/Crashlytics'
+
   # allow this package to be used with use_frameworks!
   s.static_framework = true
 end

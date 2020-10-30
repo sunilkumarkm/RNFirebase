@@ -22,7 +22,7 @@
         [self recordJavaScriptError:jsErrorDict];
     }
 
-    RCT_EXPORT_METHOD(setBoolValue:(NSString *)key boolValue:(BOOL *)boolValue) {
+    RCT_EXPORT_METHOD(setBoolValue:(NSString *)key boolValue:(NSString *)boolValue) {
         [[FIRCrashlytics crashlytics] setCustomValue:boolValue forKey:key];
     }
 
@@ -36,7 +36,7 @@
     }
 
     RCT_EXPORT_METHOD(setStringValue:(NSString *)key stringValue:(NSString *)stringValue) {
-        [[FIRCrashlytics crashlytics] stringValue:intValue forKey:key];
+        [[FIRCrashlytics crashlytics] setCustomValue:stringValue forKey:key];
     }
 
     RCT_EXPORT_METHOD(setUserIdentifier:(NSString *)userId) {
